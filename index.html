@@ -12,11 +12,28 @@
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon-CrNvm9A0.png" />
     <link rel="manifest" href="./manifest.json" />
     <title>Ride Report Notes - SE Technical Department</title>
-    <script type="module" crossorigin src="./assets/index-BMs9auO6.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-CpkRPBs-.css">
+    <script type="module" crossorigin src="./assets/index-BXYMktRq.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-w28Ztsks.css">
   </head>
   <body class="bg-slate-950 text-slate-100 antialiased select-none selection:bg-amber-500 selection:text-slate-950">
     <div id="root"></div>
+    <script>
+      // Fallback: Nếu không tải được bundle assets (do chưa upload folder assets), tự động chuyển sang file HTML độc lập
+      window.addEventListener('error', function(e) {
+        if (e.target && (e.target.src || '').includes('assets')) {
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          window.location.replace(isIOS ? './ride-report-ios.html' : './ride-report-android.html');
+        }
+      }, true);
+      // Timeout fallback nếu sau 2.5s mà root vẫn chưa render
+      setTimeout(function() {
+        var root = document.getElementById('root');
+        if (root && root.children.length === 0) {
+          var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+          window.location.replace(isIOS ? './ride-report-ios.html' : './ride-report-android.html');
+        }
+      }, 2500);
+    </script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

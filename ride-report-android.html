@@ -1041,6 +1041,45 @@
               </div>
             </div>
 
+            <!-- HỒ SƠ THANH TRA VIÊN - CHO PHÉP TỰ DO ĐIỀU CHỈNH -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl space-y-3 shadow-xl">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <h4 class="text-xs font-black text-white uppercase flex items-center gap-1.5">
+                  <span>👤</span>
+                  <span>Hồ Sơ Thanh Tra Viên (Profile)</span>
+                </h4>
+                <span class="text-[10px] text-amber-400 font-bold lowercase">(tự do điều chỉnh)</span>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Họ và Tên</label>
+                <input type="text" id="prof-name" value="${currentProfileName}" placeholder="VD: Trịnh Văn Sơn (hoặc tên của bạn)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn Vị Mặc Định (Unit)</label>
+                <input type="text" id="prof-unit" value="${currentProfileUnit}" placeholder="VD: SHE, BNC, SBD, FSS..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-amber-500" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Số Thẻ Nhân Viên / Badge</label>
+                <input type="text" id="prof-badge" value="${currentProfileBadge}" placeholder="VD: SW-SHE-068" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Email Thanh Tra Viên</label>
+                <input type="email" id="prof-email" value="${currentProfileEmail}" placeholder="VD: email_cua_ban@sungroup.com.vn" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
+              </div>
+
+              <div class="p-2.5 bg-blue-950/40 rounded-xl border border-blue-800/40 text-[10px] text-blue-200 leading-relaxed">
+                💡 <b>Gợi ý:</b> <i>"Trịnh Văn Sơn"</i> và <i>"SHE"</i> chỉ là ví dụ để mọi người biết thông tin cần điền. Bạn có thể tự do sửa thành tên của bạn rồi bấm nút <b>"Cập Nhật Hồ Sơ"</b> bên dưới.
+              </div>
+
+              <button onclick="saveProfileFromSettings()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow active:scale-98 transition">
+                💾 CẬP NHẬT HỒ SƠ
+              </button>
+            </div>
+
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl space-y-2.5">
               <h4 class="text-xs font-black text-slate-300 uppercase">Thống Kê Bộ Nhớ Điện Thoại</h4>
               <div class="flex justify-between text-xs py-1 border-b border-slate-800 text-slate-400">
@@ -1070,6 +1109,32 @@
     // ==========================================
     // 4. FINDING ACTIONS & VALIDATION
     // ==========================================
+    
+    // Profile State (tự do điều chỉnh)
+    let currentProfileName = localStorage.getItem('rrn_profile_name') || 'Trịnh Văn Sơn';
+    let currentProfileUnit = localStorage.getItem('rrn_profile_unit') || 'SHE';
+    let currentProfileBadge = localStorage.getItem('rrn_profile_badge') || 'SW-SHE-068';
+    let currentProfileEmail = localStorage.getItem('rrn_profile_email') || 'sontv05@sungroup.com.vn';
+
+    function saveProfileFromSettings() {
+      const name = document.getElementById('prof-name')?.value.trim() || 'Trịnh Văn Sơn';
+      const unit = document.getElementById('prof-unit')?.value.trim() || 'SHE';
+      const badge = document.getElementById('prof-badge')?.value.trim() || 'SW-SHE-068';
+      const email = document.getElementById('prof-email')?.value.trim() || 'sontv05@sungroup.com.vn';
+
+      currentProfileName = name;
+      currentProfileUnit = unit;
+      currentProfileBadge = badge;
+      currentProfileEmail = email;
+
+      localStorage.setItem('rrn_profile_name', name);
+      localStorage.setItem('rrn_profile_unit', unit);
+      localStorage.setItem('rrn_profile_badge', badge);
+      localStorage.setItem('rrn_profile_email', email);
+
+      alert('Đã cập nhật hồ sơ thanh tra viên thành công! Báo cáo và phát hiện mới sẽ tự động dùng chữ ký: ' + name + ' (' + unit + ')');
+    }
+
     let chosenPriority = 'TYPE 3';
 
     function selectPriority(p) {
@@ -1280,7 +1345,14 @@
           </div>
           <div>
             <label class="text-xs font-bold text-slate-400 uppercase block mb-1">ĐƠN VỊ (UNIT) - TỰ NHẬP TAY</label>
-            <input type="text" id="new-rep-unit" value="BNC" placeholder="Nhập tên đơn vị: BNC, SBD, FSS, Castle..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-bold outline-none focus:border-amber-500" />
+            <input type="text" id="new-rep-unit" value="${currentProfileUnit || 'SHE'}" placeholder="Nhập tên đơn vị: SHE, BNC, SBD, FSS, Castle..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-bold outline-none focus:border-amber-500" />
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-slate-400 uppercase">NGƯỜI KIỂM ĐỊNH (INSPECTOR)</label>
+              <span class="text-[10px] text-amber-400 font-bold lowercase">(tự do chỉnh sửa)</span>
+            </div>
+            <input type="text" id="new-rep-insp" value="${currentProfileName || 'Trịnh Văn Sơn (SHE)'}" placeholder="VD: Trịnh Văn Sơn (SHE), Nguyễn Văn A..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-bold outline-none focus:border-blue-500" />
           </div>
           <div>
             <label class="text-xs font-bold text-slate-400 uppercase block mb-1">NGÀY (TỰ ĐỘNG)</label>
@@ -1296,7 +1368,8 @@
 
     async function submitNewReport() {
       const title = document.getElementById('new-rep-title')?.value.trim();
-      const unit = document.getElementById('new-rep-unit')?.value.trim() || 'BNC';
+      const unit = document.getElementById('new-rep-unit')?.value.trim() || currentProfileUnit || 'SHE';
+      const insp = document.getElementById('new-rep-insp')?.value.trim() || currentProfileName || 'Trịnh Văn Sơn (SHE)';
       const date = document.getElementById('new-rep-date')?.value || new Date().toISOString().split('T')[0];
 
       if (!title) {
@@ -1309,6 +1382,7 @@
         title,
         unit,
         date,
+        inspectorName: insp,
         createdAt: Date.now()
       };
       await db.reports.add(newRep);
@@ -1367,9 +1441,31 @@
       if (!report) return;
 
       const wb = new ExcelJS.Workbook();
-      wb.creator = 'SE Technical Department';
+      wb.creator = report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)';
 
-      // 1. Sheet Tổng Hợp
+      const YELLOW_HEADER = 'FFFFFF00';
+      const HEADER_FONT = { name: 'Cambria', size: 9, bold: true, color: { argb: 'FF000000' } };
+      const HEADER_BORDER = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
+      };
+      const CELL_BORDER = {
+        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+      };
+
+      const uniqueRides = Array.from(new Set([
+        ...areas.map(a => a.name.trim()),
+        ...findings.map(f => f.areaName.trim())
+      ])).filter(Boolean);
+
+      // ==========================================
+      // 1. Sheet Tổng Hợp (Header Nền Vàng Chữ Đen)
+      // ==========================================
       const sSheet = wb.addWorksheet('Tổng Hợp');
       sSheet.columns = [
         { key: 'no', width: 6 },
@@ -1387,19 +1483,30 @@
         { key: 'rem', width: 44 }
       ];
 
-      sSheet.addRow([
-        'TT\nNO:', 'MÃ HỒ SƠ\nDOSSIER', 'TRÒ CHƠI\nRIDE', 'NGÀY KĐ\nINSP. DATE',
-        'SỐ TEM\nTEST MARK', 'KẾT QUẢ\nRESULT', 'HIỆU LỰC ĐẾN\nVALID UNTIL',
-        'TYPE 1', 'TYPE 2', 'TYPE 3', 'THEO DÕI', 'TỔNG\nTOTAL', 'GHI CHÚ\nREMARKS'
+      const sHeaderRow = sSheet.addRow([
+        'TT
+NO:', 'MÃ HỒ SƠ
+DOSSIER', 'TRÒ CHƠI
+RIDE', 'NGÀY KĐ
+INSP. DATE',
+        'SỐ TEM
+TEST MARK', 'KẾT QUẢ
+RESULT', 'HIỆU LỰC ĐẾN
+VALID UNTIL',
+        'TYPE 1', 'TYPE 2', 'TYPE 3', 'THEO DÕI', 'TỔNG
+TOTAL', 'GHI CHÚ
+REMARKS'
       ]);
-      sSheet.getRow(1).height = 30;
-      sSheet.getRow(1).font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
-      sSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+      sHeaderRow.height = 36;
+      for (let c = 1; c <= 13; c++) {
+        const cell = sHeaderRow.getCell(c);
+        cell.font = HEADER_FONT;
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: YELLOW_HEADER } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = HEADER_BORDER;
+      }
 
-      const uniqueRides = Array.from(new Set([
-        ...areas.map(a => a.name),
-        ...findings.map(f => f.areaName)
-      ])).filter(Boolean);
+      let totalT1 = 0, totalT2 = 0, totalT3 = 0, totalTf = 0;
 
       uniqueRides.forEach((rName, i) => {
         const rf = findings.filter(f => f.areaName === rName);
@@ -1408,14 +1515,46 @@
         const t3 = rf.filter(f => f.priority === 'TYPE 3' || f.priority === 'P3').length;
         const tf = rf.filter(f => f.priority === 'THEO DÕI').length;
 
+        totalT1 += t1; totalT2 += t2; totalT3 += t3; totalTf += tf;
+
         const row = sSheet.addRow([
           i + 1, '—', rName, report.date, '—', t1 > 0 ? 'C' : t2 > 0 ? 'B' : 'A', '—',
           t1 || '', t2 || '', t3 || '', tf || '', rf.length, t1 > 0 ? 'Cần hoàn tất Type 1 & 2' : 'Bình thường'
         ]);
-        row.height = 22;
+        row.height = 24;
+        for (let c = 1; c <= 13; c++) {
+          const cell = row.getCell(c);
+          cell.font = { name: 'Cambria', size: 9 };
+          cell.alignment = { horizontal: c === 3 || c === 13 ? 'left' : 'center', vertical: 'middle' };
+          cell.border = CELL_BORDER;
+          if (c === 6) {
+            cell.font = {
+              name: 'Cambria',
+              size: 9,
+              bold: true,
+              color: { argb: cell.value === 'A' ? 'FF15803D' : cell.value === 'B' ? 'FFB45309' : 'FFDC2626' }
+            };
+          }
+        }
       });
 
-      // 2. Sheet Tất Cả Phát Hiện (9 Cột chuẩn)
+      // Dòng tổng cộng Summary
+      const sumRow = sSheet.addRow([
+        '', '', 'TỔNG CỘNG / TOTAL', '', '', '', '',
+        totalT1, totalT2, totalT3, totalTf, findings.length, ''
+      ]);
+      sumRow.height = 26;
+      for (let c = 1; c <= 13; c++) {
+        const cell = sumRow.getCell(c);
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+        cell.font = { name: 'Cambria', size: 9, bold: true };
+        cell.border = { top: { style: 'thin' }, bottom: { style: 'double' } };
+        if (c >= 8 && c <= 12) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      }
+
+      // ==========================================
+      // 2. Sheet Tất Cả Phát Hiện (Header Nền Vàng Chữ Đen)
+      // ==========================================
       const allSheet = wb.addWorksheet('Tất Cả Phát Hiện');
       allSheet.columns = [
         { key: 'no', width: 6 },
@@ -1429,26 +1568,53 @@
         { key: 'insp', width: 24 }
       ];
 
-      allSheet.addRow([
-        'TT\nNO:', 'NGÀY\nDATE', 'KHU VỰC\nAREA', 'TÊN BỘ PHẬN/ THIẾT BỊ \nNAME OF PART/ EQUIPMENT',
-        'MÔ TẢ RỦI RO\nFINDINGS', 'HÌNH ẢNH\nPICTURES', 'CẤP ĐỘ ƯU TIÊN\nPRIORITY LEVEL',
-        'ĐỀ XUẤT\nRECOMMENDATIONS', 'NHẬN XÉT BỞI\nINSPECTED BY'
+      const allHeaderRow = allSheet.addRow([
+        'TT
+NO:', 'NGÀY
+DATE', 'KHU VỰC
+AREA', 'TÊN BỘ PHẬN/ THIẾT BỊ 
+NAME OF PART/ EQUIPMENT',
+        'MÔ TẢ RỦI RO
+FINDINGS', 'HÌNH ẢNH
+PICTURES', 'CẤP ĐỘ ƯU TIÊN
+PRIORITY LEVEL',
+        'ĐỀ XUẤT
+RECOMMENDATIONS', 'NHẬN XÉT BỞI
+INSPECTED BY'
       ]);
-      allSheet.getRow(1).height = 36;
-      allSheet.getRow(1).font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
-      allSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
+      allHeaderRow.height = 36;
+      for (let c = 1; c <= 9; c++) {
+        const cell = allHeaderRow.getCell(c);
+        cell.font = HEADER_FONT;
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: YELLOW_HEADER } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border = HEADER_BORDER;
+      }
 
       findings.forEach((f, idx) => {
         const row = allSheet.addRow([
           idx + 1, f.date, f.areaName, f.equipment, f.findingDescription,
           f.photos && f.photos.length > 0 ? '' : '(Không có ảnh)',
-          f.priority, f.recommendation, f.inspectedBy
+          f.priority, f.recommendation, f.inspectedBy || report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)'
         ]);
         row.height = 95;
+        for (let c = 1; c <= 9; c++) {
+          const cell = row.getCell(c);
+          cell.font = { name: 'Cambria', size: 9 };
+          cell.alignment = { horizontal: c === 3 || c === 4 || c === 5 || c === 8 ? 'left' : 'center', vertical: 'middle', wrapText: true };
+          cell.border = CELL_BORDER;
+          if (c === 7) {
+            cell.font = { name: 'Cambria', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = {
+              type: 'pattern', pattern: 'solid',
+              fgColor: { argb: f.priority === 'TYPE 1' ? 'FFDC2626' : f.priority === 'TYPE 2' ? 'FFF59E0B' : f.priority === 'THEO DÕI' ? 'FF7C3AED' : 'FF2563EB' }
+            };
+          }
+        }
 
         // Embed photo if exists
         if (f.photos && f.photos.length > 0) {
-          const match = f.photos[0].dataUrl.match(/^data:image\/(png|jpeg|jpg);base64,(.+)$/);
+          const match = f.photos[0].dataUrl.match(/^data:image/(png|jpeg|jpg);base64,(.+)$/);
           if (match) {
             try {
               const imgId = wb.addImage({ base64: match[2], extension: match[1] === 'png' ? 'png' : 'jpeg' });
@@ -1462,9 +1628,113 @@
         }
       });
 
+      // ==========================================
+      // 3. TỪNG SHEET THEO TỪNG KHU VỰC (AREA)
+      // MỖI KHU VỰC TẠO RA 1 SHEET RIÊNG
+      // ==========================================
+      const usedSheetNames = new Set(['Tổng Hợp', 'Tất Cả Phát Hiện']);
+
+      uniqueRides.forEach((rName, rIdx) => {
+        let baseName = rName.split('/')[0].replace(/[:\/?*[]]/g, '').trim().substring(0, 28) || ('KhuVuc_' + (rIdx + 1));
+        let sheetName = baseName;
+        let counter = 1;
+        while (usedSheetNames.has(sheetName)) {
+          counter++;
+          sheetName = baseName.substring(0, 24) + ' (' + counter + ')';
+        }
+        usedSheetNames.add(sheetName);
+
+        const areaWs = wb.addWorksheet(sheetName);
+        areaWs.columns = [
+          { key: 'no', width: 6 },
+          { key: 'date', width: 13 },
+          { key: 'area', width: 28 },
+          { key: 'equip', width: 28 },
+          { key: 'desc', width: 44 },
+          { key: 'pic', width: 26 },
+          { key: 'prio', width: 22 },
+          { key: 'rec', width: 38 },
+          { key: 'insp', width: 24 }
+        ];
+
+        const aHeader = areaWs.addRow([
+          'TT
+NO:', 'NGÀY
+DATE', 'KHU VỰC
+AREA', 'TÊN BỘ PHẬN/ THIẾT BỊ 
+NAME OF PART/ EQUIPMENT',
+          'MÔ TẢ RỦI RO
+FINDINGS', 'HÌNH ẢNH
+PICTURES', 'CẤP ĐỘ ƯU TIÊN
+PRIORITY LEVEL',
+          'ĐỀ XUẤT
+RECOMMENDATIONS', 'NHẬN XÉT BỞI
+INSPECTED BY'
+        ]);
+        aHeader.height = 36;
+        for (let c = 1; c <= 9; c++) {
+          const cell = aHeader.getCell(c);
+          cell.font = HEADER_FONT;
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: YELLOW_HEADER } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+          cell.border = HEADER_BORDER;
+        }
+
+        const rf = findings.filter(f => f.areaName === rName);
+        if (rf.length === 0) {
+          const emptyRow = areaWs.addRow([
+            1, report.date, rName, '—', '(Chưa có phát hiện nào được ghi nhận / No finding recorded)',
+            '—', 'THEO DÕI', 'Tiếp tục theo dõi kiểm tra định kỳ', report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)'
+          ]);
+          emptyRow.height = 32;
+          for (let c = 1; c <= 9; c++) {
+            const cell = emptyRow.getCell(c);
+            cell.font = { name: 'Cambria', size: 9, italic: c === 5 };
+            cell.alignment = { horizontal: c === 3 || c === 5 ? 'left' : 'center', vertical: 'middle', wrapText: true };
+            cell.border = CELL_BORDER;
+          }
+        } else {
+          rf.forEach((f, j) => {
+            const row = areaWs.addRow([
+              j + 1, f.date, f.areaName, f.equipment, f.findingDescription,
+              f.photos && f.photos.length > 0 ? '' : '(Không có ảnh)',
+              f.priority, f.recommendation, f.inspectedBy || report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)'
+            ]);
+            row.height = 95;
+            for (let c = 1; c <= 9; c++) {
+              const cell = row.getCell(c);
+              cell.font = { name: 'Cambria', size: 9 };
+              cell.alignment = { horizontal: c === 3 || c === 4 || c === 5 || c === 8 ? 'left' : 'center', vertical: 'middle', wrapText: true };
+              cell.border = CELL_BORDER;
+              if (c === 7) {
+                cell.font = { name: 'Cambria', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = {
+                  type: 'pattern', pattern: 'solid',
+                  fgColor: { argb: f.priority === 'TYPE 1' ? 'FFDC2626' : f.priority === 'TYPE 2' ? 'FFF59E0B' : f.priority === 'THEO DÕI' ? 'FF7C3AED' : 'FF2563EB' }
+                };
+              }
+            }
+
+            if (f.photos && f.photos.length > 0) {
+              const match = f.photos[0].dataUrl.match(/^data:image/(png|jpeg|jpg);base64,(.+)$/);
+              if (match) {
+                try {
+                  const imgId = wb.addImage({ base64: match[2], extension: match[1] === 'png' ? 'png' : 'jpeg' });
+                  areaWs.addImage(imgId, {
+                    tl: { col: 5.08, row: j + 1 + 0.08 },
+                    ext: { width: 135, height: 105 },
+                    editAs: 'oneCell'
+                  });
+                } catch (err) {}
+              }
+            }
+          });
+        }
+      });
+
       const buffer = await wb.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      saveAs(blob, report.title.replace(/[^a-zA-Z0-9_-]/g, '_') + '_V1.xlsx');
+      saveAs(blob, report.title.replace(/[^a-zA-Z0-9_À-ɏḀ-ỿ-]/g, '_') + '_V1.xlsx');
     }
 
     // ==========================================
