@@ -1,8 +1,8 @@
-# 🎡 RIDE REPORT NOTES — SE TECHNICAL DEPARTMENT
+# 🎡 RIDE REPORT NOTES — S.H.E • Technical Department
 
 Ứng dụng kiểm tra an toàn hiện trường trò chơi cảm giác mạnh & thiết bị công viên (Amusement Rides Inspection App) thiết kế chuẩn **Mobile First**, hoạt động **100% Offline**, lưu trữ cục bộ bằng **IndexedDB** và xuất file Excel chuẩn Sun World / TÜV NORD.
 
-![Logo SE Technical Department](./icons/icon-192.png)
+![Logo S.H.E • Technical Department](./icons/icon-192.png)
 
 ---
 
@@ -55,7 +55,7 @@ Dự án đã tích hợp sẵn file `.github/workflows/deploy.yml`. Nếu bạn
 1. Mở liên kết GitHub Pages trên trình duyệt Chrome: `https://USERNAME.github.io/ride-report-notes/`.
 2. Bấm vào biểu tượng **3 chấm (⋮)** ở góc trên bên phải.
 3. Chọn **"Cài đặt ứng dụng"** (hoặc **"Thêm vào Màn hình chính"**).
-4. Ứng dụng sẽ xuất hiện trên màn hình chính như một ứng dụng native với logo **SE Technical Department**.
+4. Ứng dụng sẽ xuất hiện trên màn hình chính như một ứng dụng native với logo **S.H.E • Technical Department**.
 5. Bật chế độ máy bay (tắt Wifi/4G) ➔ Mở app vẫn chạy và lưu dữ liệu bình thường 100%!
 
 ### 🍏 Trên iPhone / iPad (Safari iOS)
@@ -97,4 +97,4 @@ Dự án đã tích hợp sẵn file `.github/workflows/deploy.yml`. Nếu bạn
 
 ---
 
-**Phát triển bởi:** SE Technical Department • Sun World Ride Safety Inspection
+**Phát triển bởi:** S.H.E • Technical Department • Sun World Ride Safety Inspection
