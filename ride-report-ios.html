@@ -858,8 +858,8 @@
                   <span>Thư viện</span>
                 </button>
               </div>
-              <input type="file" id="finding-cam-input" accept="image/*" capture="environment" class="hidden" onchange="handleAddPhoto(event)" />
-              <input type="file" id="finding-gallery-input" accept="image/*" multiple class="hidden" onchange="handleAddPhoto(event)" />
+              <input type="file" id="finding-cam-input" accept="image/*" capture="environment" class="hidden" onchange="handleCameraCapture(event)" />
+              <input type="file" id="finding-gallery-input" accept="image/*" multiple class="hidden" onchange="handleGalleryUpload(event)" />
             </div>
 
             <!-- FORM FIELDS - KHÔNG BẮT BUỘC NHẬP HẾT -->
@@ -1236,7 +1236,89 @@
       }
     }
 
-    function handleAddPhoto(e) {
+    let pendingCamPhoto = null;
+
+    function handleCameraCapture(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        // KHÔNG tự động lưu về máy ngay khi chụp. Mở modal xác nhận
+        pendingCamPhoto = {
+          file: file,
+          dataUrl: ev.target.result,
+          name: 'RIDE_' + Date.now() + '.jpg'
+        };
+        showCameraConfirmModal();
+      };
+      r.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    function showCameraConfirmModal() {
+      if (!pendingCamPhoto) return;
+      const container = document.getElementById('modal-container');
+      const content = document.getElementById('modal-content');
+
+      content.innerHTML = `
+        <div class="p-3 border-b border-slate-800 flex justify-between items-center">
+          <h3 class="text-xs font-black text-white flex items-center gap-1.5">
+            <span>📷</span>
+            <span>Xác Nhận Ảnh Vừa Chụp</span>
+          </h3>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-white font-bold text-base">✕</button>
+        </div>
+        <div class="p-3 space-y-3">
+          <div class="bg-black rounded-2xl overflow-hidden flex items-center justify-center max-h-[50vh] border border-slate-800">
+            <img src="${pendingCamPhoto.dataUrl}" class="max-h-[48vh] w-full object-contain" />
+          </div>
+          <p class="text-[10px] text-slate-400 text-center italic">* Xác nhận để tải ảnh về máy và lưu vào báo cáo. Chụp lại để bỏ ảnh này.</p>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="retakeCameraPhoto()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl border border-slate-700">
+              🔄 CHỤP LẠI
+            </button>
+            <button onclick="confirmCameraPhoto()" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow">
+              ✓ XÁC NHẬN
+            </button>
+          </div>
+        </div>
+      `;
+      container.classList.remove('hidden');
+    }
+
+    function confirmCameraPhoto() {
+      if (!pendingCamPhoto) return;
+      // 1. Tải ảnh gốc về máy
+      try {
+        const a = document.createElement('a');
+        a.href = pendingCamPhoto.dataUrl;
+        a.download = pendingCamPhoto.name;
+        a.click();
+      } catch (err) {
+        console.warn(err);
+      }
+      // 2. Thêm vào danh sách ảnh finding
+      currentPhotos.push({
+        id: 'p-' + Date.now(),
+        dataUrl: pendingCamPhoto.dataUrl,
+        thumbnail: pendingCamPhoto.dataUrl,
+        originalPhotoName: pendingCamPhoto.name
+      });
+      pendingCamPhoto = null;
+      closeModal();
+      renderPhotosPreview();
+    }
+
+    function retakeCameraPhoto() {
+      pendingCamPhoto = null;
+      closeModal();
+      setTimeout(() => {
+        document.getElementById('finding-cam-input')?.click();
+      }, 150);
+    }
+
+    // Tải ảnh lên từ thư viện: Ảnh có sẵn trong máy rồi nên KHÔNG cần tải về máy nữa!
+    function handleGalleryUpload(e) {
       const files = e.target.files;
       if (!files || files.length === 0) return;
       Array.from(files).forEach(f => {
@@ -1244,7 +1326,9 @@
         r.onload = ev => {
           currentPhotos.push({
             id: 'p-' + Date.now() + Math.random().toString(36).substring(2, 5),
-            dataUrl: ev.target.result
+            dataUrl: ev.target.result,
+            thumbnail: ev.target.result,
+            originalPhotoName: f.name
           });
           renderPhotosPreview();
         };
@@ -1879,8 +1963,13 @@ INSPECTED BY'
       if (!file) return;
       const r = new FileReader();
       r.onload = ev => {
-        currentPhotos = [{ id: 'p-' + Date.now(), dataUrl: ev.target.result }];
+        pendingCamPhoto = {
+          file: file,
+          dataUrl: ev.target.result,
+          name: 'RIDE_' + Date.now() + '.jpg'
+        };
         navigate('add-finding');
+        setTimeout(() => showCameraConfirmModal(), 120);
       };
       r.readAsDataURL(file);
       e.target.value = '';
