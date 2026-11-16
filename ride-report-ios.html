@@ -87,9 +87,15 @@
     </div>
 
     <div class="flex items-center gap-1.5">
+      <button onclick="toggleLang()" id="btn-toggle-lang" class="px-2 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 text-[10px] font-black flex items-center gap-1 transition text-slate-200" title="Chuyển đổi ngôn ngữ / Switch language">
+        <span>🌐</span>
+        <span id="lang-tag-vi" class="text-amber-400 font-black underline">VI</span>
+        <span class="text-slate-600 font-normal">|</span>
+        <span id="lang-tag-en" class="text-slate-400">EN</span>
+      </button>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Offline (iOS)</span>
+        <span id="hdr-offline">Offline (iOS)</span>
       </span>
     </div>
   </header>
@@ -496,6 +502,38 @@
     let editingFinding = null;
     let currentPhotos = [];
     let activePhotoIdx = 0;
+    let currentLang = localStorage.getItem('rrn_html_lang') || 'vi';
+
+    function toggleLang() {
+      currentLang = currentLang === 'vi' ? 'en' : 'vi';
+      localStorage.setItem('rrn_html_lang', currentLang);
+      updateLangUi();
+      render();
+    }
+
+    function updateLangUi() {
+      const viTag = document.getElementById('lang-tag-vi');
+      const enTag = document.getElementById('lang-tag-en');
+      if (viTag && enTag) {
+        if (currentLang === 'vi') {
+          viTag.className = 'text-amber-400 font-black underline';
+          enTag.className = 'text-slate-400';
+        } else {
+          viTag.className = 'text-slate-400';
+          enTag.className = 'text-amber-400 font-black underline';
+        }
+      }
+      const nh = document.getElementById('nav-home');
+      const nr = document.getElementById('nav-reports');
+      const nc = document.getElementById('nav-camera');
+      const ne = document.getElementById('nav-export');
+      const ns = document.getElementById('nav-settings');
+      if (nh && nh.querySelector('span:last-child')) nh.querySelector('span:last-child').textContent = currentLang === 'vi' ? 'Trang Chủ' : 'Home';
+      if (nr && nr.querySelector('span:last-child')) nr.querySelector('span:last-child').textContent = currentLang === 'vi' ? 'Báo Cáo' : 'Reports';
+      if (nc && nc.querySelector('span:last-child')) nc.querySelector('span:last-child').textContent = currentLang === 'vi' ? 'Chụp Ảnh' : 'Camera';
+      if (ne && ne.querySelector('span:last-child')) ne.querySelector('span:last-child').textContent = currentLang === 'vi' ? 'Xuất Excel' : 'Export';
+      if (ns && ns.querySelector('span:last-child')) ns.querySelector('span:last-child').textContent = currentLang === 'vi' ? 'Cài Đặt' : 'Settings';
+    }
 
     async function navigate(view, params = {}) {
       currentView = view;
