@@ -624,6 +624,46 @@
               </button>
             </div>
 
+            <!-- PHÂN BỐ LỖI THEO KHU VỰC (BẤM VÀO ĐỂ TRUY CẬP KHU VỰC NHANH) -->
+            <div class="space-y-2 pt-2">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black uppercase tracking-wider text-slate-400">Phân Bổ Lỗi Theo Khu Vực (By Area)</h3>
+                <span class="text-[10px] text-amber-400 font-bold">Bấm để ghi lỗi nhanh</span>
+              </div>
+              <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-2">
+                ${(() => {
+                  const areaMap = {};
+                  filteredFindings.forEach(f => {
+                    const a = f.areaName || 'General';
+                    areaMap[a] = (areaMap[a] || 0) + 1;
+                  });
+                  const entries = Object.entries(areaMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+                  if (entries.length === 0) return '<p class="text-xs text-slate-500 text-center py-2">Chưa có dữ liệu khu vực</p>';
+                  const maxVal = Math.max(...entries.map(e => e[1]), 1);
+                  return entries.map(([areaName, count]) => {
+                    const pct = Math.round((count / maxVal) * 100);
+                    return `
+                      <div onclick="selectedAreaName = '${areaName.replace(/'/g, "\\'")}'; navigate('findings', { reportId: '${activeRep ? activeRep.id : (reports[0] ? reports[0].id : '')}' });" class="p-2.5 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-800/80 hover:border-amber-500/40 cursor-pointer transition space-y-1">
+                        <div class="flex items-center justify-between text-xs">
+                          <span class="font-extrabold text-white truncate max-w-[190px]">🎡 ${areaName}</span>
+                          <div class="flex items-center gap-2">
+                            <span class="text-slate-300 font-bold text-[11px]">${count} lỗi</span>
+                            <button type="button" onclick="event.stopPropagation(); selectedAreaName = '${areaName.replace(/'/g, "\\'")}'; editingFinding = null; navigate('add-finding', { reportId: '${activeRep ? activeRep.id : (reports[0] ? reports[0].id : '')}' });" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black shadow">
+                              + Ghi Lỗi
+                            </button>
+                            <span class="text-slate-500 text-xs">›</span>
+                          </div>
+                        </div>
+                        <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden flex">
+                          <div class="bg-gradient-to-r from-amber-500 to-rose-600 h-full rounded-full" style="width: ${Math.max(pct, 4)}%"></div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('');
+                })()}
+              </div>
+            </div>
+
             <!-- RECENT REPORTS -->
             <div class="space-y-2 pt-2">
               <h3 class="text-xs font-black uppercase tracking-wider text-slate-400">Báo Cáo Gần Đây</h3>
