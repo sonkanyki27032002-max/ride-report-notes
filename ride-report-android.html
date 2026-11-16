@@ -35,14 +35,27 @@
   </script>
 
   <style>
-    /* Safe area insets for iOS notch and Android gesture bars */
+    /* Safe area insets for iOS notch, Dynamic Island and Android gesture bars */
+    :root {
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
     body {
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-top: 0;
+      padding-bottom: 0;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       -webkit-user-select: none;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    header.sticky {
+      padding-top: calc(max(env(safe-area-inset-top, 0px), 12px) + 8px) !important;
+    }
+    nav.fixed.bottom-0 {
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 14px) !important;
+    }
+    main#app {
+      padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), 16px) + 72px) !important;
     }
     input, textarea, select {
       user-select: auto;
