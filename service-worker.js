@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ride-report-notes-v2';
+const CACHE_NAME = 'ride-report-notes-v3';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -30,37 +30,53 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
-  // Navigation requests: try network, fallback to cached index.html
+  const url = new URL(event.request.url);
+  // Never intercept dev requests on localhost, vite hot modules, or source files
+  if (
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    url.hostname === '[::1]' ||
+    url.pathname.includes('@') ||
+    url.pathname.includes('node_modules') ||
+    url.pathname.endsWith('.tsx') ||
+    url.pathname.endsWith('.ts')
+  ) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Network-first for HTML navigation, falling back to cache
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(async () => {
-        return (
-          (await caches.match('./index.html')) ||
-          (await caches.match('./')) ||
-          (await caches.match(self.registration.scope))
-        );
-      })
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const respClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, respClone));
+          }
+          return response;
+        })
+        .catch(async () => {
+          return (
+            (await caches.match('./index.html')) ||
+            (await caches.match('./')) ||
+            (await caches.match(self.registration.scope))
+          );
+        })
     );
     return;
   }
 
-  // Cache-first strategy for static assets
+  // Network-first with cache fallback
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then(response => {
+    fetch(event.request)
+      .then(response => {
         if (response && response.status === 200) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
+          const respClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, respClone));
         }
         return response;
-      }).catch(() => {
-        return caches.match(event.request);
-      });
-    })
+      })
+      .catch(() => caches.match(event.request))
   );
 });
