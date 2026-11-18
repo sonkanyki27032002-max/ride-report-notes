@@ -666,11 +666,20 @@
               <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 space-y-2">
                 ${(() => {
                   const areaMap = {};
+                  const areaTimeMap = {};
                   filteredFindings.forEach(f => {
                     const a = f.areaName || 'General';
                     areaMap[a] = (areaMap[a] || 0) + 1;
+                    const fTime = f.createdTime || (f.date ? new Date(f.date).getTime() : 0);
+                    if (!areaTimeMap[a] || fTime > areaTimeMap[a]) areaTimeMap[a] = fTime;
                   });
-                  const entries = Object.entries(areaMap).sort((a,b) => b[1] - a[1]).slice(0, 8);
+                  areas.forEach(ar => {
+                    const a = ar.name;
+                    if (!areaMap[a]) areaMap[a] = 0;
+                    const arTime = ar.createdAt || 0;
+                    if (!areaTimeMap[a] || arTime > areaTimeMap[a]) areaTimeMap[a] = arTime;
+                  });
+                  const entries = Object.entries(areaMap).sort((a,b) => (areaTimeMap[b[0]] || 0) - (areaTimeMap[a[0]] || 0) || b[1] - a[1]).slice(0, 8);
                   if (entries.length === 0) return '<p class="text-xs text-slate-500 text-center py-2">Chưa có dữ liệu khu vực</p>';
                   const maxVal = Math.max(...entries.map(e => e[1]), 1);
                   return entries.map(([areaName, count]) => {
@@ -789,7 +798,7 @@
             </div>
 
             <div class="space-y-2.5">
-              ${areas.map(a => {
+              ${[...areas].sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)).map(a => {
                 const af = findings.filter(f => f.areaName === a.name);
                 const t1 = af.filter(f => f.priority === 'TYPE 1' || f.priority === 'P1').length;
                 const t2 = af.filter(f => f.priority === 'TYPE 2' || f.priority === 'P2').length;
@@ -872,6 +881,11 @@
                         <span class="absolute top-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-md text-white ${pColor}">
                           ${f.priority}
                         </span>
+                        ${f.photos.length > 1 ? `
+                          <span class="absolute top-2 right-2 bg-black/75 px-2 py-0.5 rounded-md text-[10px] text-white font-bold border border-white/20">
+                            📷 ${f.photos.length} ảnh
+                          </span>
+                        ` : ''}
                       </div>
                     ` : ''}
 
@@ -1164,6 +1178,45 @@
           <div class="p-4 space-y-4 max-w-lg mx-auto">
             <h2 class="text-base font-black text-white">Cài Đặt & Quản Lý Lưu Trữ</h2>
 
+            <!-- HỒ SƠ THANH TRA VIÊN - CHO PHÉP TỰ DO ĐIỀU CHỈNH -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl space-y-3 shadow-xl">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <h4 class="text-xs font-black text-white uppercase flex items-center gap-1.5">
+                  <span>👤</span>
+                  <span>Hồ Sơ Thanh Tra Viên (Profile)</span>
+                </h4>
+                <span class="text-[10px] text-amber-400 font-bold lowercase">(tự do điều chỉnh)</span>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Họ và Tên</label>
+                <input type="text" id="prof-name" value="${currentProfileName}" placeholder="VD: Trịnh Văn Sơn (hoặc tên của bạn)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn Vị Mặc Định (Unit)</label>
+                <input type="text" id="prof-unit" value="${currentProfileUnit}" placeholder="VD: SHE, BNC, SBD, FSS..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-amber-500" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Số Thẻ Nhân Viên / Badge</label>
+                <input type="text" id="prof-badge" value="${currentProfileBadge}" placeholder="VD: SW-SHE-068" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[11px] font-bold text-slate-400 uppercase">Email Thanh Tra Viên</label>
+                <input type="email" id="prof-email" value="${currentProfileEmail}" placeholder="VD: email_cua_ban@sungroup.com.vn" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
+              </div>
+
+              <div class="p-2.5 bg-blue-950/40 rounded-xl border border-blue-800/40 text-[10px] text-blue-200 leading-relaxed">
+                💡 <b>Gợi ý:</b> <i>"Trịnh Văn Sơn"</i> và <i>"SHE"</i> chỉ là ví dụ để mọi người biết thông tin cần điền. Bạn có thể tự do sửa thành tên của bạn rồi bấm nút <b>"Cập Nhật Hồ Sơ"</b> bên dưới.
+              </div>
+
+              <button onclick="saveProfileFromSettings()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow active:scale-98 transition">
+                💾 CẬP NHẬT HỒ SƠ
+              </button>
+            </div>
+
             <!-- BRAND CARD WITH WHITE BADGE -->
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl flex items-center gap-3.5 shadow-xl">
               <div class="bg-white p-1 rounded-2xl w-14 h-14 flex items-center justify-center shrink-0 border border-slate-200">
@@ -1220,44 +1273,7 @@
               </div>
             </div>
 
-            <!-- HỒ SƠ THANH TRA VIÊN - CHO PHÉP TỰ DO ĐIỀU CHỈNH -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl space-y-3 shadow-xl">
-              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-                <h4 class="text-xs font-black text-white uppercase flex items-center gap-1.5">
-                  <span>👤</span>
-                  <span>Hồ Sơ Thanh Tra Viên (Profile)</span>
-                </h4>
-                <span class="text-[10px] text-amber-400 font-bold lowercase">(tự do điều chỉnh)</span>
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[11px] font-bold text-slate-400 uppercase">Họ và Tên</label>
-                <input type="text" id="prof-name" value="${currentProfileName}" placeholder="VD: Trịnh Văn Sơn (hoặc tên của bạn)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[11px] font-bold text-slate-400 uppercase">Đơn Vị Mặc Định (Unit)</label>
-                <input type="text" id="prof-unit" value="${currentProfileUnit}" placeholder="VD: SHE, BNC, SBD, FSS..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-amber-500" />
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[11px] font-bold text-slate-400 uppercase">Số Thẻ Nhân Viên / Badge</label>
-                <input type="text" id="prof-badge" value="${currentProfileBadge}" placeholder="VD: SW-SHE-068" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
-              </div>
-
-              <div class="space-y-1">
-                <label class="text-[11px] font-bold text-slate-400 uppercase">Email Thanh Tra Viên</label>
-                <input type="email" id="prof-email" value="${currentProfileEmail}" placeholder="VD: email_cua_ban@sungroup.com.vn" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-blue-500" />
-              </div>
-
-              <div class="p-2.5 bg-blue-950/40 rounded-xl border border-blue-800/40 text-[10px] text-blue-200 leading-relaxed">
-                💡 <b>Gợi ý:</b> <i>"Trịnh Văn Sơn"</i> và <i>"SHE"</i> chỉ là ví dụ để mọi người biết thông tin cần điền. Bạn có thể tự do sửa thành tên của bạn rồi bấm nút <b>"Cập Nhật Hồ Sơ"</b> bên dưới.
-              </div>
-
-              <button onclick="saveProfileFromSettings()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow active:scale-98 transition">
-                💾 CẬP NHẬT HỒ SƠ
-              </button>
-            </div>
+            
 
             <div class="pt-2">
               <button onclick="resetSampleDataPrompt()" class="w-full py-3 bg-rose-950/60 hover:bg-rose-900 text-rose-300 font-bold text-xs rounded-2xl border border-rose-800/60">
@@ -1374,6 +1390,11 @@
 
     function confirmCameraPhoto() {
       if (!pendingCamPhoto) return;
+      if (currentPhotos.length >= 5) {
+        alert('Tối đa 5 ảnh cho mỗi phát hiện (Maximum 5 photos)!');
+        closeModal();
+        return;
+      }
       // 1. Tải ảnh gốc về máy
       try {
         const a = document.createElement('a');
@@ -1390,6 +1411,7 @@
         thumbnail: pendingCamPhoto.dataUrl,
         originalPhotoName: pendingCamPhoto.name
       });
+      activePhotoIdx = currentPhotos.length - 1;
       pendingCamPhoto = null;
       closeModal();
       renderPhotosPreview();
@@ -1407,7 +1429,18 @@
     function handleGalleryUpload(e) {
       const files = e.target.files;
       if (!files || files.length === 0) return;
-      Array.from(files).forEach(f => {
+      if (currentPhotos.length >= 5) {
+        alert('Đã đạt tối đa 5 ảnh cho phát hiện này (Maximum 5 photos)!');
+        e.target.value = '';
+        return;
+      }
+      const remain = 5 - currentPhotos.length;
+      const filesToAdd = Array.from(files).slice(0, remain);
+      if (files.length > remain) {
+        alert('Chỉ có thể thêm tối đa ' + remain + ' ảnh nữa (Tối đa 5 ảnh cho mỗi phát hiện).');
+      }
+      let loaded = 0;
+      filesToAdd.forEach(f => {
         const r = new FileReader();
         r.onload = ev => {
           currentPhotos.push({
@@ -1416,7 +1449,11 @@
             thumbnail: ev.target.result,
             originalPhotoName: f.name
           });
-          renderPhotosPreview();
+          loaded++;
+          if (loaded === filesToAdd.length) {
+            activePhotoIdx = currentPhotos.length - 1;
+            renderPhotosPreview();
+          }
         };
         r.readAsDataURL(f);
       });
@@ -1427,24 +1464,50 @@
       const wrap = document.getElementById('photo-preview-wrap');
       if (!wrap) return;
       if (currentPhotos.length === 0) {
-        wrap.innerHTML = '<span class="text-xs text-slate-500">Chưa có ảnh (Không bắt buộc)</span>';
+        wrap.innerHTML = '<span class="text-xs text-slate-500">Chưa có ảnh (Tối đa 5 ảnh)</span>';
         return;
       }
-      const cur = currentPhotos[activePhotoIdx] || currentPhotos[0];
+      if (activePhotoIdx >= currentPhotos.length) activePhotoIdx = currentPhotos.length - 1;
+      if (activePhotoIdx < 0) activePhotoIdx = 0;
+      const cur = currentPhotos[activePhotoIdx];
+
+      let thumbsHtml = '';
+      if (currentPhotos.length > 1) {
+        thumbsHtml = `
+          <div class="absolute bottom-2 left-2 flex gap-1.5 z-10 bg-black/75 backdrop-blur-sm p-1 rounded-lg border border-white/20">
+            ${currentPhotos.map((p, i) => `
+              <button type="button" onclick="selectPhoto(${i})" class="w-8 h-8 rounded overflow-hidden transition ${i === activePhotoIdx ? 'ring-2 ring-amber-400 scale-105' : 'opacity-60 hover:opacity-100'}">
+                <img src="${p.dataUrl}" class="w-full h-full object-cover" />
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+
       wrap.innerHTML = `
         <div class="relative w-full h-full flex items-center justify-center p-2">
           <img src="${cur.dataUrl}" class="max-h-full max-w-full object-contain rounded-xl" />
-          <span class="absolute top-2 left-2 bg-black/75 px-2 py-0.5 rounded text-[10px] text-white font-bold">
-            Ảnh ${activePhotoIdx + 1} / ${currentPhotos.length}
-          </span>
-          <button type="button" onclick="deleteCurrentPhoto()" class="absolute bottom-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded">Xóa ảnh</button>
+          <div class="absolute top-2 left-2 flex items-center gap-1.5 z-10">
+            <span class="bg-black/80 px-2 py-0.5 rounded text-[10px] text-white font-bold border border-white/20">
+              Ảnh ${activePhotoIdx + 1} / ${currentPhotos.length} ${currentPhotos.length >= 5 ? '(Đầy)' : ''}
+            </span>
+          </div>
+          ${thumbsHtml}
+          <button type="button" onclick="deleteCurrentPhoto()" class="absolute bottom-2 right-2 bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow z-10">
+            Xóa ảnh này
+          </button>
         </div>
       `;
     }
 
+    function selectPhoto(idx) {
+      activePhotoIdx = idx;
+      renderPhotosPreview();
+    }
+
     function deleteCurrentPhoto() {
       currentPhotos.splice(activePhotoIdx, 1);
-      activePhotoIdx = 0;
+      if (activePhotoIdx >= currentPhotos.length) activePhotoIdx = Math.max(0, currentPhotos.length - 1);
       renderPhotosPreview();
     }
 
@@ -1706,7 +1769,7 @@
       wb.creator = report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)';
 
       const YELLOW_HEADER = 'FFFFFF00';
-      const HEADER_FONT = { name: 'Cambria', size: 9, bold: true, color: { argb: 'FF000000' } };
+      const HEADER_FONT = { name: 'Times New Roman', size: 11, bold: true, color: { argb: 'FF000000' } };
       const HEADER_BORDER = {
         top: { style: 'thin', color: { argb: 'FF000000' } },
         bottom: { style: 'thin', color: { argb: 'FF000000' } },
@@ -1746,18 +1809,9 @@
       ];
 
       const sHeaderRow = sSheet.addRow([
-        'TT
-NO:', 'MÃ HỒ SƠ
-DOSSIER', 'TRÒ CHƠI
-RIDE', 'NGÀY KĐ
-INSP. DATE',
-        'SỐ TEM
-TEST MARK', 'KẾT QUẢ
-RESULT', 'HIỆU LỰC ĐẾN
-VALID UNTIL',
-        'TYPE 1', 'TYPE 2', 'TYPE 3', 'THEO DÕI', 'TỔNG
-TOTAL', 'GHI CHÚ
-REMARKS'
+        'TT\nNO:', 'MÃ HỒ SƠ\nDOSSIER', 'TRÒ CHƠI\nRIDE', 'NGÀY KĐ\nINSP. DATE',
+        'SỐ TEM\nTEST MARK', 'KẾT QUẢ\nRESULT', 'HIỆU LỰC ĐẾN\nVALID UNTIL',
+        'TYPE 1', 'TYPE 2', 'TYPE 3', 'THEO DÕI', 'TỔNG\nTOTAL', 'GHI CHÚ\nREMARKS'
       ]);
       sHeaderRow.height = 36;
       for (let c = 1; c <= 13; c++) {
@@ -1786,13 +1840,13 @@ REMARKS'
         row.height = 24;
         for (let c = 1; c <= 13; c++) {
           const cell = row.getCell(c);
-          cell.font = { name: 'Cambria', size: 9 };
+          cell.font = { name: 'Times New Roman', size: 11 };
           cell.alignment = { horizontal: c === 3 || c === 13 ? 'left' : 'center', vertical: 'middle' };
           cell.border = CELL_BORDER;
           if (c === 6) {
             cell.font = {
-              name: 'Cambria',
-              size: 9,
+              name: 'Times New Roman',
+              size: 11,
               bold: true,
               color: { argb: cell.value === 'A' ? 'FF15803D' : cell.value === 'B' ? 'FFB45309' : 'FFDC2626' }
             };
@@ -1809,7 +1863,7 @@ REMARKS'
       for (let c = 1; c <= 13; c++) {
         const cell = sumRow.getCell(c);
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-        cell.font = { name: 'Cambria', size: 9, bold: true };
+        cell.font = { name: 'Times New Roman', size: 11, bold: true };
         cell.border = { top: { style: 'thin' }, bottom: { style: 'double' } };
         if (c >= 8 && c <= 12) cell.alignment = { horizontal: 'center', vertical: 'middle' };
       }
@@ -1817,6 +1871,89 @@ REMARKS'
       // ==========================================
       // 2. Sheet Tất Cả Phát Hiện (Header Nền Vàng Chữ Đen)
       // ==========================================
+      // ==========================================
+      // HELPER: Trích xuất ảnh (tối đa 5 tấm) & tính toán co giãn cột ảnh
+      // ==========================================
+      function extractFindingPhotos(f) {
+        const list = [];
+        const rawList = Array.isArray(f.photos) ? f.photos : (f.photos ? [f.photos] : []);
+        for (const item of rawList) {
+          if (!item) continue;
+          const url = item.annotatedDataUrl || item.dataUrl || item.originalDataUrl || item.thumbnail || (typeof item === 'string' ? item : null);
+          if (url) {
+            const match = url.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
+            if (match) {
+              list.push({
+                base64: match[2],
+                extension: match[1] === 'png' ? 'png' : 'jpeg'
+              });
+            }
+          }
+          if (list.length >= 5) break;
+        }
+        if (list.length === 0 && f.thumbnail) {
+          const match = f.thumbnail.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
+          if (match) {
+            list.push({
+              base64: match[2],
+              extension: match[1] === 'png' ? 'png' : 'jpeg'
+            });
+          }
+        }
+        return list;
+      }
+
+      function calcMaxPhotos(findingsList) {
+        let maxP = 1;
+        findingsList.forEach(f => {
+          const pCount = (f.photos && Array.isArray(f.photos)) ? Math.min(5, f.photos.length) : (f.photos || f.thumbnail ? 1 : 0);
+          if (pCount > maxP) maxP = pCount;
+        });
+        return Math.min(5, Math.max(1, maxP));
+      }
+
+      function getPicColWidth(maxP) {
+        return 26 + (maxP - 1) * 22;
+      }
+
+      function embedPhotosToRow(targetSheet, photos, rowIndex) {
+        if (!photos || photos.length === 0) return;
+        const imgWidth = 130;
+        const imgHeight = 95;
+        const gap = 8;
+        const leftPad = 8;
+        const topPad = 12;
+
+        photos.forEach((photo, pIdx) => {
+          try {
+            const imgId = wb.addImage({
+              base64: photo.base64,
+              extension: photo.extension
+            });
+            const xOffsetPx = leftPad + pIdx * (imgWidth + gap);
+            targetSheet.addImage(imgId, {
+              tl: {
+                nativeCol: 5,
+                nativeColOff: Math.round(xOffsetPx * 9525),
+                nativeRow: rowIndex,
+                nativeRowOff: Math.round(topPad * 9525)
+              },
+              ext: { width: imgWidth, height: imgHeight },
+              editAs: 'oneCell'
+            });
+          } catch (err) {
+            console.warn('Error embedding photo ' + pIdx + ' at row ' + rowIndex, err);
+          }
+        });
+      }
+
+      // ==========================================
+      // 2. Sheet Tất Cả Phát Hiện (Header Nền Vàng Chữ Đen)
+      // Cột ảnh co giãn theo hàng có nhiều ảnh nhất (tối đa 5 ảnh)
+      // ==========================================
+      const maxPhotosAll = calcMaxPhotos(findings);
+      const picColWidthAll = getPicColWidth(maxPhotosAll);
+
       const allSheet = wb.addWorksheet('Tất Cả Phát Hiện');
       allSheet.columns = [
         { key: 'no', width: 6 },
@@ -1824,25 +1961,16 @@ REMARKS'
         { key: 'area', width: 28 },
         { key: 'equip', width: 28 },
         { key: 'desc', width: 44 },
-        { key: 'pic', width: 26 },
+        { key: 'pic', width: picColWidthAll },
         { key: 'prio', width: 22 },
         { key: 'rec', width: 38 },
         { key: 'insp', width: 24 }
       ];
 
       const allHeaderRow = allSheet.addRow([
-        'TT
-NO:', 'NGÀY
-DATE', 'KHU VỰC
-AREA', 'TÊN BỘ PHẬN/ THIẾT BỊ 
-NAME OF PART/ EQUIPMENT',
-        'MÔ TẢ RỦI RO
-FINDINGS', 'HÌNH ẢNH
-PICTURES', 'CẤP ĐỘ ƯU TIÊN
-PRIORITY LEVEL',
-        'ĐỀ XUẤT
-RECOMMENDATIONS', 'NHẬN XÉT BỞI
-INSPECTED BY'
+        'TT\nNO:', 'NGÀY\nDATE', 'KHU VỰC\nAREA', 'TÊN BỘ PHẬN/ THIẾT BỊ \nNAME OF PART/ EQUIPMENT',
+        'MÔ TẢ RỦI RO\nFINDINGS', 'HÌNH ẢNH\nPICTURES', 'CẤP ĐỘ ƯU TIÊN\nPRIORITY LEVEL',
+        'ĐỀ XUẤT\nRECOMMENDATIONS', 'NHẬN XÉT BỞI\nINSPECTED BY'
       ]);
       allHeaderRow.height = 36;
       for (let c = 1; c <= 9; c++) {
@@ -1854,40 +1982,34 @@ INSPECTED BY'
       }
 
       findings.forEach((f, idx) => {
+        const rowPhotos = extractFindingPhotos(f);
+        const prioVal = (f.priority === 'TYPE 1' || f.priority === 'P1' || f.priority === '1') ? '1' :
+          (f.priority === 'TYPE 2' || f.priority === 'P2' || f.priority === '2') ? '2' :
+          (f.priority === 'THEO DÕI' || f.priority === 'Follow-up' || f.priority === 'theo dõi') ? 'THEO DÕI' : '3';
+        const prioColor = (prioVal === '1') ? 'FFDC2626' : (prioVal === '2') ? 'FFF59E0B' : (prioVal === 'THEO DÕI') ? 'FF7C3AED' : 'FF2563EB';
+
         const row = allSheet.addRow([
           idx + 1, f.date, f.areaName, f.equipment, f.findingDescription,
-          f.photos && f.photos.length > 0 ? '' : '(Không có ảnh)',
-          f.priority, f.recommendation, f.inspectedBy || report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)'
+          rowPhotos.length > 0 ? '' : '(Không có ảnh)',
+          prioVal, f.recommendation, f.inspectedBy || report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)'
         ]);
         row.height = 95;
         for (let c = 1; c <= 9; c++) {
           const cell = row.getCell(c);
-          cell.font = { name: 'Cambria', size: 9 };
+          cell.font = { name: 'Times New Roman', size: 11 };
           cell.alignment = { horizontal: c === 3 || c === 4 || c === 5 || c === 8 ? 'left' : 'center', vertical: 'middle', wrapText: true };
           cell.border = CELL_BORDER;
           if (c === 7) {
-            cell.font = { name: 'Cambria', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.font = { name: 'Times New Roman', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
             cell.fill = {
               type: 'pattern', pattern: 'solid',
-              fgColor: { argb: f.priority === 'TYPE 1' ? 'FFDC2626' : f.priority === 'TYPE 2' ? 'FFF59E0B' : f.priority === 'THEO DÕI' ? 'FF7C3AED' : 'FF2563EB' }
+              fgColor: { argb: prioColor }
             };
           }
         }
 
-        // Embed photo if exists
-        if (f.photos && f.photos.length > 0) {
-          const match = f.photos[0].dataUrl.match(/^data:image/(png|jpeg|jpg);base64,(.+)$/);
-          if (match) {
-            try {
-              const imgId = wb.addImage({ base64: match[2], extension: match[1] === 'png' ? 'png' : 'jpeg' });
-              allSheet.addImage(imgId, {
-                tl: { col: 5.08, row: idx + 1 + 0.08 },
-                ext: { width: 135, height: 105 },
-                editAs: 'oneCell'
-              });
-            } catch (err) {}
-          }
-        }
+        // Nhúng tất cả ảnh (tối đa 5 ảnh) xếp ngang trong ô
+        embedPhotosToRow(allSheet, rowPhotos, idx + 1);
       });
 
       // ==========================================
@@ -1906,6 +2028,10 @@ INSPECTED BY'
         }
         usedSheetNames.add(sheetName);
 
+        const rf = findings.filter(f => f.areaName === rName);
+        const maxPhotosArea = calcMaxPhotos(rf);
+        const picColWidthArea = getPicColWidth(maxPhotosArea);
+
         const areaWs = wb.addWorksheet(sheetName);
         areaWs.columns = [
           { key: 'no', width: 6 },
@@ -1913,25 +2039,16 @@ INSPECTED BY'
           { key: 'area', width: 28 },
           { key: 'equip', width: 28 },
           { key: 'desc', width: 44 },
-          { key: 'pic', width: 26 },
+          { key: 'pic', width: picColWidthArea },
           { key: 'prio', width: 22 },
           { key: 'rec', width: 38 },
           { key: 'insp', width: 24 }
         ];
 
         const aHeader = areaWs.addRow([
-          'TT
-NO:', 'NGÀY
-DATE', 'KHU VỰC
-AREA', 'TÊN BỘ PHẬN/ THIẾT BỊ 
-NAME OF PART/ EQUIPMENT',
-          'MÔ TẢ RỦI RO
-FINDINGS', 'HÌNH ẢNH
-PICTURES', 'CẤP ĐỘ ƯU TIÊN
-PRIORITY LEVEL',
-          'ĐỀ XUẤT
-RECOMMENDATIONS', 'NHẬN XÉT BỞI
-INSPECTED BY'
+          'TT\nNO:', 'NGÀY\nDATE', 'KHU VỰC\nAREA', 'TÊN BỘ PHẬN/ THIẾT BỊ \nNAME OF PART/ EQUIPMENT',
+          'MÔ TẢ RỦI RO\nFINDINGS', 'HÌNH ẢNH\nPICTURES', 'CẤP ĐỘ ƯU TIÊN\nPRIORITY LEVEL',
+          'ĐỀ XUẤT\nRECOMMENDATIONS', 'NHẬN XÉT BỞI\nINSPECTED BY'
         ]);
         aHeader.height = 36;
         for (let c = 1; c <= 9; c++) {
@@ -1942,7 +2059,6 @@ INSPECTED BY'
           cell.border = HEADER_BORDER;
         }
 
-        const rf = findings.filter(f => f.areaName === rName);
         if (rf.length === 0) {
           const emptyRow = areaWs.addRow([
             1, report.date, rName, '—', '(Chưa có phát hiện nào được ghi nhận / No finding recorded)',
@@ -1951,45 +2067,40 @@ INSPECTED BY'
           emptyRow.height = 32;
           for (let c = 1; c <= 9; c++) {
             const cell = emptyRow.getCell(c);
-            cell.font = { name: 'Cambria', size: 9, italic: c === 5 };
+            cell.font = { name: 'Times New Roman', size: 11, italic: c === 5 };
             cell.alignment = { horizontal: c === 3 || c === 5 ? 'left' : 'center', vertical: 'middle', wrapText: true };
             cell.border = CELL_BORDER;
           }
         } else {
           rf.forEach((f, j) => {
+            const rowPhotos = extractFindingPhotos(f);
+            const prioVal = (f.priority === 'TYPE 1' || f.priority === 'P1' || f.priority === '1') ? '1' :
+              (f.priority === 'TYPE 2' || f.priority === 'P2' || f.priority === '2') ? '2' :
+              (f.priority === 'THEO DÕI' || f.priority === 'Follow-up' || f.priority === 'theo dõi') ? 'THEO DÕI' : '3';
+            const prioColor = (prioVal === '1') ? 'FFDC2626' : (prioVal === '2') ? 'FFF59E0B' : (prioVal === 'THEO DÕI') ? 'FF7C3AED' : 'FF2563EB';
+
             const row = areaWs.addRow([
               j + 1, f.date, f.areaName, f.equipment, f.findingDescription,
-              f.photos && f.photos.length > 0 ? '' : '(Không có ảnh)',
-              f.priority, f.recommendation, f.inspectedBy || report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)'
+              rowPhotos.length > 0 ? '' : '(Không có ảnh)',
+              prioVal, f.recommendation, f.inspectedBy || report.inspectorName || currentProfileName || 'Trịnh Văn Sơn (SHE)'
             ]);
             row.height = 95;
             for (let c = 1; c <= 9; c++) {
               const cell = row.getCell(c);
-              cell.font = { name: 'Cambria', size: 9 };
+              cell.font = { name: 'Times New Roman', size: 11 };
               cell.alignment = { horizontal: c === 3 || c === 4 || c === 5 || c === 8 ? 'left' : 'center', vertical: 'middle', wrapText: true };
               cell.border = CELL_BORDER;
               if (c === 7) {
-                cell.font = { name: 'Cambria', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.font = { name: 'Times New Roman', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                 cell.fill = {
                   type: 'pattern', pattern: 'solid',
-                  fgColor: { argb: f.priority === 'TYPE 1' ? 'FFDC2626' : f.priority === 'TYPE 2' ? 'FFF59E0B' : f.priority === 'THEO DÕI' ? 'FF7C3AED' : 'FF2563EB' }
+                  fgColor: { argb: prioColor }
                 };
               }
             }
 
-            if (f.photos && f.photos.length > 0) {
-              const match = f.photos[0].dataUrl.match(/^data:image/(png|jpeg|jpg);base64,(.+)$/);
-              if (match) {
-                try {
-                  const imgId = wb.addImage({ base64: match[2], extension: match[1] === 'png' ? 'png' : 'jpeg' });
-                  areaWs.addImage(imgId, {
-                    tl: { col: 5.08, row: j + 1 + 0.08 },
-                    ext: { width: 135, height: 105 },
-                    editAs: 'oneCell'
-                  });
-                } catch (err) {}
-              }
-            }
+            // Nhúng tất cả ảnh (tối đa 5 ảnh) xếp ngang trong ô
+            embedPhotosToRow(areaWs, rowPhotos, j + 1);
           });
         }
       });
@@ -2131,6 +2242,145 @@ INSPECTED BY'
     }
 
     // Start App
+
+    function openZoom(src) {
+      const modal = document.getElementById('zoom-modal');
+      const img = document.getElementById('zoom-img');
+      if (modal && img) {
+        img.src = src;
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeZoom() {
+      const modal = document.getElementById('zoom-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function openReportPreview() {
+      const repId = document.getElementById('export-rep-select')?.value || currentReportId;
+      if (!repId) return;
+      const report = await db.reports.get(repId);
+      if (!report) return;
+      const areas = await db.areas.where('reportId').equals(repId).toArray();
+      const findings = await db.findings.where('reportId').equals(repId).toArray();
+
+      const modal = document.getElementById('preview-full-modal');
+      if (!modal) return;
+
+      const p1Count = findings.filter(f => f.priority === 'TYPE 1' || f.priority === 'P1').length;
+      const p2Count = findings.filter(f => f.priority === 'TYPE 2' || f.priority === 'P2').length;
+      const p3Count = findings.filter(f => f.priority === 'TYPE 3' || f.priority === 'P3').length;
+      const followUpCount = findings.filter(f => f.priority === 'THEO DÕI').length;
+
+      let html = `
+        <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex flex-col p-2 sm:p-4 overflow-hidden animate-fade-in">
+          <div class="bg-slate-900 border border-slate-700 rounded-3xl flex flex-col max-h-full max-w-5xl w-full mx-auto shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-black px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 uppercase">${report.unit || 'SHE'}</span>
+                <h2 class="text-base font-black text-white mt-1">${report.title}</h2>
+                <p class="text-xs text-slate-400">Thanh tra: ${report.inspectorName || 'Trịnh Văn Sơn'} • Ngày: ${report.date}</p>
+              </div>
+              <button onclick="closeReportPreview()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-lg">✕</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-4 gap-2 p-3 bg-slate-950/60 border-b border-slate-800 text-center text-xs">
+              <div class="bg-rose-950/60 p-2 rounded-xl text-rose-300"><span class="text-[9px] block font-bold uppercase">Type 1</span><span class="text-base font-extrabold">${p1Count}</span></div>
+              <div class="bg-amber-950/60 p-2 rounded-xl text-amber-300"><span class="text-[9px] block font-bold uppercase">Type 2</span><span class="text-base font-extrabold">${p2Count}</span></div>
+              <div class="bg-blue-950/60 p-2 rounded-xl text-blue-300"><span class="text-[9px] block font-bold uppercase">Type 3</span><span class="text-base font-extrabold">${p3Count}</span></div>
+              <div class="bg-purple-950/60 p-2 rounded-xl text-purple-300"><span class="text-[9px] block font-bold uppercase">Theo Dõi</span><span class="text-base font-extrabold">${followUpCount}</span></div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="flex-1 overflow-auto p-4">
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-black text-white uppercase tracking-wider">CHI TIẾT PHÁT HIỆN KIỂM ĐỊNH (FINDINGS SHEET)</span>
+                <span class="text-xs font-bold text-slate-400">Hiển thị ${findings.length} / ${findings.length} mục</span>
+              </div>
+              <div class="overflow-x-auto rounded-2xl border border-slate-800">
+                <table class="w-full text-left text-xs border-collapse min-w-[900px]">
+                  <thead>
+                    <tr class="bg-slate-950 text-slate-300 border-b border-slate-700 font-bold text-[11px]">
+                      <th class="p-2.5 text-center w-12 border-r border-slate-800">TT</th>
+                      <th class="p-2.5 text-center w-24 border-r border-slate-800">Ngày</th>
+                      <th class="p-2.5 w-44 border-r border-slate-800">Khu Vực (Area)</th>
+                      <th class="p-2.5 w-44 border-r border-slate-800">Bộ Phận / Thiết Bị</th>
+                      <th class="p-2.5 min-w-[220px] border-r border-slate-800">Mô Tả Rủi Ro</th>
+                      <th class="p-2.5 text-center min-w-[170px] border-r border-slate-800">Hình Ảnh</th>
+                      <th class="p-2.5 text-center w-32 border-r border-slate-800">Mức Độ</th>
+                      <th class="p-2.5 min-w-[200px] border-r border-slate-800">Đề Xuất Khắc Phục</th>
+                      <th class="p-2.5 w-36">Nhận Xét Bởi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/80 bg-slate-900/40">
+      `;
+
+      findings.forEach((f, idx) => {
+        const photos = extractFindingPhotos(f);
+        const priorityColor = (f.priority === 'TYPE 1' || f.priority === 'P1') ? 'bg-rose-600 text-white' :
+          (f.priority === 'TYPE 2' || f.priority === 'P2') ? 'bg-amber-500 text-slate-950' :
+          (f.priority === 'THEO DÕI') ? 'bg-purple-600 text-white' : 'bg-blue-600 text-white';
+
+        let photoHtml = '<span class="text-[10px] text-slate-500 italic block">(Không có ảnh)</span>';
+        if (photos.length > 0) {
+          photoHtml = '<div class="flex items-center justify-center gap-1.5 flex-wrap">' +
+            photos.map((p, pIdx) => {
+              const src = `data:image/${p.extension};base64,${p.base64}`;
+              return `
+                <div onclick="openZoom('${src}')" class="cursor-pointer group relative inline-block rounded-lg overflow-hidden border border-slate-700 shadow hover:border-amber-400 transition" title="Ảnh ${pIdx + 1}/${photos.length}">
+                  <img src="${src}" class="w-16 h-12 object-cover group-hover:scale-105 transition" />
+                  <span class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-white font-bold transition">🔍</span>
+                  ${photos.length > 1 ? `<span class="absolute bottom-0 right-0 bg-slate-900/80 text-[8px] text-slate-200 px-1 rounded-tl">${pIdx + 1}</span>` : ''}
+                </div>
+              `;
+            }).join('') + '</div>';
+        }
+
+        html += `
+          <tr class="hover:bg-slate-800/30 transition">
+            <td class="p-2.5 text-center font-bold text-slate-400 border-r border-slate-800/80">${idx + 1}</td>
+            <td class="p-2.5 text-center text-slate-400 text-[11px] border-r border-slate-800/80">${f.date || ''}</td>
+            <td class="p-2.5 font-bold text-white border-r border-slate-800/80">${f.areaName || ''}</td>
+            <td class="p-2.5 font-semibold text-amber-300 border-r border-slate-800/80">${f.equipment || '—'}</td>
+            <td class="p-2.5 text-slate-300 leading-relaxed border-r border-slate-800/80">${f.findingDescription || ''}</td>
+            <td class="p-2.5 text-center border-r border-slate-800/80">${photoHtml}</td>
+            <td class="p-2.5 text-center border-r border-slate-800/80"><span class="px-2 py-1 rounded text-[10px] font-black inline-block leading-tight ${priorityColor}">${f.priority || 'TYPE 3'}</span></td>
+            <td class="p-2.5 text-emerald-400 text-[11px] leading-relaxed border-r border-slate-800/80">${f.recommendation || '—'}</td>
+            <td class="p-2.5 text-[10px] text-slate-400 whitespace-pre-line">${f.inspectedBy || report.inspectorName || 'Trịnh Văn Sơn (SHE)'}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-slate-950 border-t border-slate-800 flex justify-end gap-3">
+              <button onclick="closeReportPreview()" class="py-2.5 px-5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">Đóng</button>
+              <button onclick="closeReportPreview(); exportExcelCurrent()" class="py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-2">
+                <span>📊</span>
+                <span>Xuất File Excel (.xlsx)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      modal.innerHTML = html;
+      modal.classList.remove('hidden');
+    }
+
+    function closeReportPreview() {
+      const modal = document.getElementById('preview-full-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
     window.addEventListener('DOMContentLoaded', async () => {
       await initDb();
       navigate('home');
