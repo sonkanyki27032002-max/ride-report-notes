@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ride-report-notes-v8';
+const CACHE_NAME = 'ride-report-notes-v11';
 
 const ASSETS_TO_CACHE = [
   './',
